@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نبض الرغيف — لوحة المراقبة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Tajawal:wght@400;500;700;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#ede0c8;
+    --ink-soft:#e3d3b3;
+    --paper:#241a12;
+    --paper-dim:#3a2c1d;
+    --crust:#a65d18;
+    --crust-dark:#84480f;
+    --ember:#7a2418;
+    --parsley:#3f5c35;
+    --smoke:#5c4f3f;
+    --line: rgba(36,26,18,.16);
+    --good:#3f5c35;
+    --bad:#7a2418;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Tajawal',sans-serif;
+    font-weight:500;
+    -webkit-font-smoothing:auto;
+    min-height:100vh;
+  }
+  .num{font-family:'IBM Plex Sans Arabic',sans-serif; font-feature-settings:"tnum"; direction:ltr; unicode-bidi:plaintext;}
+  h1,h2,.display{font-family:'Lalezar',sans-serif; font-weight:400; letter-spacing:.5px;}
+  .wrap{max-width:920px; margin:0 auto; padding:0 20px 70px;}
+
+  /* TOPBAR -------------------------------------------------- */
+  .topbar{position:sticky; top:0; z-index:40; display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:rgba(237,224,200,.92); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .dot{width:9px; height:9px; border-radius:50%; background:var(--good); box-shadow:0 0 0 0 rgba(63,92,53,.5); animation:livepulse 2s infinite;}
+  .brand .dot.off{background:var(--smoke); animation:none;}
+  @keyframes livepulse{
+    0%{ box-shadow:0 0 0 0 rgba(63,92,53,.5); }
+    70%{ box-shadow:0 0 0 8px rgba(63,92,53,0); }
+    100%{ box-shadow:0 0 0 0 rgba(63,92,53,0); }
+  }
+  .brand .name{font-family:'Lalezar',sans-serif; font-size:19px;}
+  .brand .name small{font-family:'IBM Plex Sans Arabic'; font-size:11px; color:var(--smoke); display:block; font-weight:500; letter-spacing:1px; margin-top:-2px;}
+  .status-pill{font-family:'IBM Plex Sans Arabic'; font-size:11.5px; color:var(--smoke); background:var(--ink-soft); border:1px solid var(--line); padding:6px 12px; border-radius:30px;}
+
+  /* HERO: THE PULSE LINE ------------------------------------ */
+  .hero{padding:50px 20px 10px; text-align:center;}
+  .hero .eyebrow{font-family:'IBM Plex Sans Arabic'; font-size:11px; letter-spacing:3px; color:var(--crust); text-transform:uppercase;}
+  .hero h1{font-size:40px; margin:8px 0 4px;}
+  .hero .sub{font-size:14px; color:var(--smoke); max-width:480px; margin:0 auto;}
+
+  .pulse-card{margin-top:30px; background:var(--paper); color:var(--ink); border-radius:16px; padding:24px 20px 16px; box-shadow:0 30px 60px -28px rgba(36,26,18,.55); position:relative; overflow:hidden;}
+  .pulse-card .big{font-family:'IBM Plex Sans Arabic'; font-size:64px; font-weight:700; line-height:1;}
+  .pulse-card .label{font-size:13px; color:var(--ink-soft); margin-top:4px;}
+  .ekg{width:100%; height:64px; margin-top:14px; display:block;}
+  .ekg path{fill:none; stroke:var(--crust); stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+  .ekg .trail{stroke-dasharray:6 10; opacity:.35;}
+
+  /* STAT GRID ------------------------------------------------ */
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px;}
+  @media (max-width:560px){ .grid3{grid-template-columns:1fr 1fr;} }
+  .stat{background:var(--ink-soft); border:1px solid var(--line); border-radius:12px; padding:16px 14px;}
+  .stat .v{font-family:'IBM Plex Sans Arabic'; font-size:24px; font-weight:700; color:var(--paper);}
+  .stat .l{font-size:12px; color:var(--smoke); margin-top:3px;}
+  .stat .delta{font-family:'IBM Plex Sans Arabic'; font-size:11.5px; margin-top:6px; display:inline-block; padding:2px 8px; border-radius:20px;}
+  .delta.up{color:var(--good); background:rgba(63,92,53,.12);}
+  .delta.flat{color:var(--smoke); background:rgba(92,79,63,.1);}
+
+  /* SECTIONS -------------------------------------------------- */
+  section{margin-top:46px;}
+  .eyebrow-line{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .eyebrow-line .dot{width:7px; height:7px; border-radius:50%; background:var(--crust);}
+  .eyebrow-line span{font-family:'IBM Plex Sans Arabic'; font-size:12px; letter-spacing:2px; color:var(--crust); text-transform:uppercase;}
+  h2.title{font-size:24px; margin:0 0 16px;}
+
+  /* breakdown bars */
+  .bd{display:grid; gap:10px;}
+  .bd-row{display:flex; align-items:center; gap:10px;}
+  .bd-label{width:96px; font-size:13px; color:var(--smoke); flex-shrink:0;}
+  .bd-track{flex:1; height:10px; background:var(--ink-soft); border-radius:6px; overflow:hidden;}
+  .bd-fill{height:100%; width:0%; background:linear-gradient(90deg,var(--ember),var(--crust)); border-radius:6px; transition:width 1s cubic-bezier(.2,.8,.2,1);}
+  .bd-val{width:64px; text-align:start; font-family:'IBM Plex Sans Arabic'; font-size:12.5px; color:var(--paper-dim); flex-shrink:0;}
+
+  .bd-cards{display:flex; flex-wrap:wrap; gap:8px;}
+  .bd-chip{background:var(--ink-soft); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:12.5px; display:flex; align-items:center; gap:8px;}
+  .bd-chip b{font-family:'IBM Plex Sans Arabic'; color:var(--paper);}
+
+  /* recent visits table */
+  .log{margin-top:6px; display:grid; gap:0;}
+  .log-row{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line); font-size:13px;}
+  .log-row .ico{font-size:16px; width:22px; text-align:center; flex-shrink:0;}
+  .log-row .who{flex:1; color:var(--paper-dim);}
+  .log-row .who b{color:var(--paper); font-weight:700;}
+  .log-row .when{font-family:'IBM Plex Sans Arabic'; color:var(--smoke); font-size:12px; flex-shrink:0;}
+  .empty{text-align:center; padding:30px 10px; color:var(--smoke); font-size:13.5px;}
+  .empty .ico{font-size:28px; display:block; margin-bottom:8px;}
+
+  .refresh-row{display:flex; justify-content:center; margin-top:30px;}
+  .refresh-btn{font-family:'Tajawal'; font-weight:700; font-size:13.5px; color:var(--paper); background:var(--ink-soft); border:1px solid var(--line); padding:10px 22px; border-radius:30px; cursor:pointer; transition:background .2s;}
+  .refresh-btn:hover{background:var(--crust); color:var(--ink); border-color:var(--crust);}
+  .refresh-btn:active{transform:scale(.98);}
+
+  .error-box{margin-top:20px; background:rgba(122,36,24,.08); border:1px solid rgba(122,36,24,.3); border-radius:8px; padding:14px 16px; font-size:13.5px; color:var(--ember); line-height:1.8;}
+
+  footer{padding:50px 20px 30px; text-align:center;}
+  footer .credit{font-size:12px; color:var(--smoke); font-family:'IBM Plex Sans Arabic';}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001s !important; transition-duration:.001s !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="dot off" id="liveDot"></div>
+    <div class="name">نبض الرغيف<small>لوحة مراقبة الزيارات</small></div>
+  </div>
+  <div class="status-pill" id="statusPill">جارٍ الاتصال…</div>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">مباشر</div>
+  <h1>كم شخص فتح الدراسة؟</h1>
+  <div class="sub">تتحدث هذه اللوحة فوراً مع كل زيارة جديدة لصفحة دراسة الجدوى.</div>
+</div>
+
+<div class="wrap">
+  <div class="pulse-card">
+    <div class="big num" id="totalCount">—</div>
+    <div class="label">إجمالي الزيارات المسجَّلة</div>
+    <svg class="ekg" viewBox="0 0 400 64" preserveAspectRatio="none">
+      <path class="trail" d="M0,32 L400,32"></path>
+      <path id="ekgLine" d="M0,32 L400,32"></path>
+    </svg>
+  </div>
+
+  <div class="grid3">
+    <div class="stat">
+      <div class="v num" id="todayCount">—</div>
+      <div class="l">اليوم</div>
+      <span class="delta flat" id="todayDelta">—</span>
+    </div>
+    <div class="stat">
+      <div class="v num" id="weekCount">—</div>
+      <div class="l">آخر ٧ أيام</div>
+    </div>
+    <div class="stat">
+      <div class="v num" id="lastVisitAgo">—</div>
+      <div class="l">آخر زيارة</div>
+    </div>
+  </div>
+
+  <div id="errorBox"></div>
+
+  <section>
+    <div class="eyebrow-line"><span class="dot"></span><span>نوع الأجهزة</span></div>
+    <h2 class="title">من أين يفتحون الدراسة</h2>
+    <div class="bd" id="deviceBars"></div>
+  </section>
+
+  <section>
+    <div class="eyebrow-line"><span class="dot"></span><span>النظام والمتصفح</span></div>
+    <h2 class="title">تفاصيل تقنية</h2>
+    <div class="bd-cards" id="osChips" style="margin-bottom:10px;"></div>
+    <div class="bd-cards" id="browserChips"></div>
+  </section>
+
+  <section>
+    <div class="eyebrow-line"><span class="dot"></span><span>السجل</span></div>
+    <h2 class="title">آخر الزيارات</h2>
+    <div class="log" id="visitLog"></div>
+  </section>
+
+  <div class="refresh-row">
+    <button class="refresh-btn" id="refreshBtn">⟲ تحديث الآن</button>
+  </div>
+</div>
+
+<footer>
+  <div class="credit">© <span class="num">2026</span> الرغيف — متصل بقاعدة بيانات ragheef-2ac78</div>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCU_1IVknNwrZdEzadgoi6W9IPkNGDjF9Q",
+  authDomain: "ragheef-2ac78.firebaseapp.com",
+  projectId: "ragheef-2ac78",
+  storageBucket: "ragheef-2ac78.firebasestorage.app",
+  messagingSenderId: "877346953105",
+  appId: "1:877346953105:web:759dfd141ebf43315d6c30"
+};
+const VIEWS_COLLECTION = "ragheef_views";
+
+const deviceIcons = { "جوال":"📱", "تابلت":"📲", "حاسوب":"💻" };
+
+function arDate(ts){
+  if(!ts) return "—";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString('ar-SA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+function timeAgo(ts){
+  if(!ts) return "—";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.floor(diffMs/60000);
+  if(mins < 1) return "الآن";
+  if(mins < 60) return mins + " د";
+  const hrs = Math.floor(mins/60);
+  if(hrs < 24) return hrs + " س";
+  return Math.floor(hrs/24) + " يوم";
+}
+
+function setStatus(text, ok){
+  document.getElementById('statusPill').textContent = text;
+  document.getElementById('liveDot').className = 'dot' + (ok ? '' : ' off');
+}
+
+function showError(message){
+  document.getElementById('errorBox').innerHTML =
+    `<div class="error-box">⚠️ ${message}</div>`;
+}
+
+function renderBars(containerId, counts, total){
+  const el = document.getElementById(containerId);
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  if(entries.length === 0){ el.innerHTML = '<div class="empty">لا توجد بيانات بعد</div>'; return; }
+  el.innerHTML = entries.map(([label, count])=>{
+    const pct = total > 0 ? Math.round((count/total)*100) : 0;
+    return `<div class="bd-row">
+      <div class="bd-label">${label}</div>
+      <div class="bd-track"><div class="bd-fill" style="width:${pct}%"></div></div>
+      <div class="bd-val num">${count} (${pct}٪)</div>
+    </div>`;
+  }).join('');
+}
+
+function renderChips(containerId, counts){
+  const el = document.getElementById(containerId);
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  if(entries.length === 0){ el.innerHTML = ''; return; }
+  el.innerHTML = entries.map(([label, count])=>
+    `<div class="bd-chip">${label} <b class="num">${count}</b></div>`
+  ).join('');
+}
+
+function renderEkg(values){
+  const svg = document.getElementById('ekgLine');
+  if(!values.length){ svg.setAttribute('d','M0,32 L400,32'); return; }
+  const max = Math.max(...values, 1);
+  const stepX = 400 / (values.length - 1 || 1);
+  let d = '';
+  values.forEach((v, i)=>{
+    const x = i * stepX;
+    const y = 56 - (v/max)*44;
+    d += (i===0 ? `M${x},${y}` : ` L${x},${y}`);
+  });
+  svg.setAttribute('d', d);
+}
+
+function renderLog(docs){
+  const el = document.getElementById('visitLog');
+  if(docs.length === 0){
+    el.innerHTML = `<div class="empty"><span class="ico">📭</span>لا توجد زيارات مسجَّلة بعد — أول زيارة لصفحة الدراسة ستظهر هنا.</div>`;
+    return;
+  }
+  el.innerHTML = docs.map(doc=>{
+    const v = doc.data();
+    const icon = deviceIcons[v.deviceType] || "🖥️";
+    return `<div class="log-row">
+      <div class="ico">${icon}</div>
+      <div class="who"><b>${v.deviceType || 'غير معروف'}</b> · ${v.os || '—'} · ${v.browser || '—'}</div>
+      <div class="when num">${arDate(v.timestamp)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadDashboard(){
+  setStatus('جارٍ التحديث…', false);
+  document.getElementById('errorBox').innerHTML = '';
+
+  if(firebaseConfig.apiKey.includes('ضع_')){
+    showError('لم يتم ضبط بيانات Firebase بعد في هذا الملف.');
+    setStatus('غير متصل', false);
+    return;
+  }
+
+  try{
+    if(!firebase.apps.length){
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+    db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+
+    const snap = await db.collection(VIEWS_COLLECTION)
+      .orderBy('timestamp', 'desc')
+      .limit(500)
+      .get();
+
+    const docs = snap.docs;
+    const total = docs.length;
+    document.getElementById('totalCount').textContent = total.toLocaleString('en-US');
+
+    const now = Date.now();
+    const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+    const weekAgo = now - 7*24*60*60*1000;
+
+    let todayCount = 0, weekCount = 0;
+    const deviceCounts = {}, osCounts = {}, browserCounts = {};
+    const hourBuckets = new Array(24).fill(0);
+
+    docs.forEach(doc=>{
+      const v = doc.data();
+      const ts = v.timestamp && v.timestamp.toDate ? v.timestamp.toDate() : null;
+      if(ts){
+        if(ts.getTime() >= startOfToday.getTime()) todayCount++;
+        if(ts.getTime() >= weekAgo) weekCount++;
+        hourBuckets[ts.getHours()]++;
+      }
+      const dv = v.deviceType || 'غير معروف';
+      const os = v.os || 'غير معروف';
+      const br = v.browser || 'غير معروف';
+      deviceCounts[dv] = (deviceCounts[dv]||0)+1;
+      osCounts[os] = (osCounts[os]||0)+1;
+      browserCounts[br] = (browserCounts[br]||0)+1;
+    });
+
+    document.getElementById('todayCount').textContent = todayCount.toLocaleString('en-US');
+    document.getElementById('weekCount').textContent = weekCount.toLocaleString('en-US');
+    document.getElementById('todayDelta').textContent = todayCount > 0 ? `+${todayCount} اليوم` : 'لا زيارات اليوم';
+    document.getElementById('todayDelta').className = 'delta ' + (todayCount > 0 ? 'up' : 'flat');
+
+    document.getElementById('lastVisitAgo').textContent = docs.length ? timeAgo(docs[0].data().timestamp) : '—';
+
+    renderBars('deviceBars', deviceCounts, total);
+    renderChips('osChips', osCounts);
+    renderChips('browserChips', browserCounts);
+    renderEkg(hourBuckets);
+    renderLog(docs.slice(0, 15));
+
+    setStatus('متصل · آخر تحديث الآن', true);
+  }catch(e){
+    console.error(e);
+    showError('تعذّر الاتصال بقاعدة البيانات: ' + e.message + '. تأكد من تفعيل Firestore وقواعد الأمان المناسبة.');
+    setStatus('خطأ في الاتصال', false);
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+loadDashboard();
+setInterval(loadDashboard, 30000);
+</script>
+
+</body>
+</html>
